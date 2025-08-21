@@ -401,7 +401,7 @@ polymarket.get("/search_events", async (c) => {
 	const { query, status } = c.req.query();
 
 	const response = await fetch(
-		`https://polymarket.com/api/events/global?q=${query}&events_status=${status}`,
+		`https://gamma-api.polymarket.com/public-search?q=${query}&limit_per_type=20&type=events`,
 	);
 
 	const data = (await response.json()) as {
@@ -418,7 +418,7 @@ polymarket.get("/search_events", async (c) => {
 			markets: event.markets
 				.map(
 					(market) =>
-						`${market.slug}: ${market.outcomes.map((outcome, i) => `${outcome}(${market.outcomePrices[i]})`).join("/")}`,
+						`${market.slug}: ${market?.outcomes}`,
 				)
 				.join("\n"),
 			startDate: event.startDate,
@@ -431,7 +431,7 @@ polymarket.get("/search_tags", async (c) => {
 	const { query } = c.req.query();
 
 	const response = await fetch(
-		`https://polymarket.com/api/events/global?q=${query}&events_status=active`,
+		`https://gamma-api.polymarket.com/public-search?q=${query}&optimized=true&limit_per_type=10&search_tags=true&cache=true`,
 	);
 	const data = (await response.json()) as {
 		tags: Tag[];
