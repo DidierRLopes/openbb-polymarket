@@ -820,7 +820,7 @@ app.get("/widgets.json", (c) => {
 					type: "text",
 					value: "f1",
 				},
-				{
+				/*{
 					paramName: "status",
 					description: "The status of the events to search for",
 					type: "text",
@@ -835,7 +835,7 @@ app.get("/widgets.json", (c) => {
 							value: "resolved",
 						},
 					],
-				},
+				},*/
 			],
 		},
 		search_tags: {
