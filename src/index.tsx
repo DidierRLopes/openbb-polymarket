@@ -822,12 +822,29 @@ app.get("/apps.json", (c) => {
 						"w": 40,
 						"h": 10,
 						"state": {
+							"params": {
+								"tag": "honduras"
+							},
 							"chartView": {
 								"enabled": false,
 								"chartType": "line"
+							},
+							"columnState": {
+								"default": {
+									"columnVisibility": {
+										"hiddenColIds": [
+											"slug"
+										]
+									},
+									"rowSelection": [
+										"0"
+									]
+								}
 							}
 						},
-						"groups": ["markets-overview"]
+						"groups": [
+							"Group 1"
+						]
 					},
 					{
 						"i": "top_events",
@@ -837,14 +854,16 @@ app.get("/apps.json", (c) => {
 						"h": 10,
 						"state": {
 							"params": {
-								"tag": ""
+								"tag": "honduras"
 							},
 							"chartView": {
 								"enabled": false,
 								"chartType": "line"
 							}
 						},
-						"groups": ["markets-overview"]
+						"groups": [
+							"Group 1"
+						]
 					}
 				]
 			},
@@ -859,6 +878,9 @@ app.get("/apps.json", (c) => {
 						"w": 40,
 						"h": 11,
 						"state": {
+							"params": {
+								"tag": "trump"
+							},
 							"chartView": {
 								"enabled": false,
 								"chartType": "line"
@@ -866,7 +888,7 @@ app.get("/apps.json", (c) => {
 							"columnState": {
 								"default": {
 									"rowSelection": [
-										"1"
+										"2"
 									]
 								}
 							}
@@ -884,7 +906,14 @@ app.get("/apps.json", (c) => {
 				]
 			}
 		},
-		"groups": []
+		"groups": [
+			{
+				"name": "Group 1",
+				"type": "param",
+				"paramName": "tag",
+				"defaultValue": "honduras"
+			}
+		]
 	}
 	]);
 });
@@ -1104,7 +1133,8 @@ app.get("/widgets.json", (c) => {
 						{
 							field: "slug",
 							headerName: "Slug",
-							cellDataType: "text"
+							cellDataType: "text",
+							show: false
 						},
 						{
 							field: "createdAt",
