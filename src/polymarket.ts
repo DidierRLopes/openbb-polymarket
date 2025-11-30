@@ -463,15 +463,7 @@ polymarket.get("/top_events", async (c) => {
 
 	return c.json(
 		data.map((event) => ({
-			id: event.id,
 			title: event.title,
-			active: !event.closed,
-			markets: event.markets
-				.map(
-					(market) =>
-						`${market.slug}: ${Array.isArray(market.outcomes) ? market.outcomes.map((outcome, i) => `${outcome}(${market.outcomePrices[i]})`).join("/") : ""}`,
-				)
-				.join("\n"),
 			volume: event.volume,
 			liquidity: event.liquidity,
 			volume24hr: event.volume24hr,
@@ -480,6 +472,14 @@ polymarket.get("/top_events", async (c) => {
 			volume1yr: event.volume1yr,
 			startDate: event.startDate,
 			endDate: event.endDate,
+			active: !event.closed,
+			id: event.id,
+			markets: event.markets
+				.map(
+					(market) =>
+						`${market.slug}: ${Array.isArray(market.outcomes) ? market.outcomes.map((outcome, i) => `${outcome}(${market.outcomePrices[i]})`).join("/") : ""}`,
+				)
+				.join("\n"),
 		})),
 	);
 });
