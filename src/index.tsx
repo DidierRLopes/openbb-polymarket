@@ -1103,34 +1103,34 @@ app.get("/widgets.json", (c) => {
 			],
 		},
 		top_events: {
-			name: "Top Events",
-			description: "Get the top events on Polymarket (volume > 1.0)",
+			name: "Events Stats",
+			description: "View detailed statistics for Polymarket events including trading volume, liquidity, and market activity. Filter by topic and status.",
 			source: "Polymarket",
 			endpoint: "/polymarket/top_events",
 			params: [
 				{
 					paramName: "tag",
-					description: "The tag to filter the markets by (e.g. trump, fed, ukraine)",
+					description: "Filter events by topic/category (e.g., 'trump', 'fed', 'ukraine', 'sports'). Leave empty for all topics.",
 					type: "text",
 					value: "",
 				},
 				{
 					paramName: "active",
-					description: "Show active or ended events",
-					label: "Active Events",
+					description: "Toggle between active (ongoing) and ended (resolved) events. Active events can still be traded.",
+					label: "Show Active Events",
 					type: "boolean",
 					value: true,
 				},
 				{
 					paramName: "limit",
-					description: "The number of events to return",
+					description: "Maximum number of events to display (1-100). Higher values may impact performance.",
 					type: "number",
 					value: 30,
 				},
 				{
 					paramName: "title",
-					description: "Select an event",
-					label: "Event",
+					description: "Event selection for cross-widget synchronization. Click on an event title in the table to update related widgets.",
+					label: "Selected Event",
 					type: "endpoint",
 					optionsEndpoint: "/polymarket/event_options",
 					optionsParams: {
@@ -1268,14 +1268,14 @@ app.get("/widgets.json", (c) => {
 			],
 		},
 		trending_tags: {
-			name: "Top Markets",
-			description: "Get the top markets on Polymarket sorted by creation date",
+			name: "Trending Topics",
+			description: "Discover trending topics and categories on Polymarket, sorted by most recent activity. Click on any topic to filter events and markets.",
 			source: "Polymarket",
 			endpoint: "/polymarket/trending_tags",
 			params: [
 				{
 					paramName: "tag",
-					description: "The tag to filter markets (automatically set when clicking a label)",
+					description: "Selected topic tag (automatically set when clicking on a topic label in the table)",
 					type: "text",
 					value: "",
 					show: false,
@@ -1386,21 +1386,21 @@ app.get("/widgets.json", (c) => {
 			],
 		},
 		event_markets_price_table: {
-			name: "Event Markets Price Table",
-			description: "Time series table showing price history for all markets in an event with dates and market columns (2 data points per day)",
+			name: "Event Markets Historical",
+			description: "Historical price data for all markets within a selected event. Displays time series data with timestamps and market prices, updated twice daily.",
 			source: "Polymarket",
 			endpoint: "/polymarket/event_markets_price_table",
 			params: [
 				{
 					paramName: "tag",
-					description: "The tag to filter events",
+					description: "Filter available events by topic/category. Syncs with topic selection from other widgets.",
 					type: "text",
 					value: "",
 				},
 				{
 					paramName: "title",
-					description: "Select an event",
-					label: "Event",
+					description: "Select an event to view historical price data for all its markets. Updates automatically when clicking events in other widgets.",
+					label: "Event Selection",
 					type: "endpoint",
 					optionsEndpoint: "/polymarket/event_options",
 					optionsParams: {
