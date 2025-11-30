@@ -823,7 +823,7 @@ app.get("/apps.json", (c) => {
 						"h": 16,
 						"state": {
 							"params": {
-								"tag": "equities"
+								"tag": "gemini-3"
 							},
 							"chartView": {
 								"enabled": false,
@@ -856,8 +856,7 @@ app.get("/apps.json", (c) => {
 							"params": {
 								"tag": "gemini-3",
 								"active": "true",
-								"limit": "10",
-								"event_id": 59297
+								"limit": "10"
 							},
 							"chartModel": {
 								"modelType": "range",
@@ -913,7 +912,8 @@ app.get("/apps.json", (c) => {
 						"h": 15,
 						"state": {
 							"params": {
-								"event_id": 57575
+								"tag": "gemini-3",
+								"title": "Which company has best AI model end of 2025?"
 							},
 							"chartModel": {
 								"modelType": "range",
@@ -927,6 +927,7 @@ app.get("/apps.json", (c) => {
 							}
 						},
 						"groups": [
+							"Group 1",
 							"Group 2"
 						]
 					},
@@ -941,7 +942,7 @@ app.get("/apps.json", (c) => {
 								"tag": "gemini-3",
 								"active": "true",
 								"limit": "10",
-								"event_id": 57575
+								"title": "Which company has best AI model end of 2025?"
 							},
 							"chartModel": {
 								"modelType": "range",
@@ -1046,9 +1047,9 @@ app.get("/apps.json", (c) => {
 			},
 			{
 				"name": "Group 2",
-				"type": "param",
-				"paramName": "event_id",
-				"defaultValue": 57575
+				"type": "endpointParam",
+				"paramName": "title",
+				"defaultValue": "Which company has best AI model end of 2025?"
 			}
 		]
 	}
@@ -1126,10 +1127,15 @@ app.get("/widgets.json", (c) => {
 					value: 30,
 				},
 				{
-					paramName: "event_id",
-					description: "Selected event ID (set by clicking on title)",
-					type: "text",
-					value: "",
+					paramName: "title",
+					description: "Select an event",
+					label: "Event",
+					type: "endpoint",
+					optionsEndpoint: "/polymarket/event_options",
+					optionsParams: {
+						tag: "$tag",
+						active: "$active"
+					},
 					show: false,
 				},
 			],
@@ -1145,8 +1151,8 @@ app.get("/widgets.json", (c) => {
 							renderFnParams: {
 								actionType: "groupBy",
 								groupBy: {
-									paramName: "event_id",
-									valueField: "id"
+									paramName: "title",
+									valueField: "title"
 								}
 							}
 						}
@@ -1385,10 +1391,20 @@ app.get("/widgets.json", (c) => {
 			endpoint: "/polymarket/event_markets_price_table",
 			params: [
 				{
-					paramName: "event_id",
-					description: "The event ID to display markets price history (click on a title in Top Events to set)",
+					paramName: "tag",
+					description: "The tag to filter events",
 					type: "text",
-					value: "19694",
+					value: "",
+				},
+				{
+					paramName: "title",
+					description: "Select an event",
+					label: "Event",
+					type: "endpoint",
+					optionsEndpoint: "/polymarket/event_options",
+					optionsParams: {
+						tag: "$tag"
+					},
 				},
 			],
 		},

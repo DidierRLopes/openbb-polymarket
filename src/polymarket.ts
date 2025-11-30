@@ -1030,15 +1030,49 @@ polymarket.get("/home_cards", async (c) => {
 	);
 });
 
-polymarket.get("/event_markets_price_table", async (c) => {
-	const { event_id } = c.req.query();
+polymarket.get("/event_options", async (c) => {
+	const { tag } = c.req.query();
+	
+	// Fetch all events (both active and closed) based on tag
+	const response = await fetch(
+		`https://gamma-api.polymarket.com/events?limit=500${tag ? `&tag_slug=${tag}` : ""}`,
+	);
+	const data = (await response.json()) as Event[];
+	
+	// Return events as label/value pairs for dropdown
+	return c.json(
+		data.map((event) => ({
+			label: event.title,
+			value: event.title
+		}))
+	);
+});
 
-	if (!event_id) {
-		return c.json({ error: "Event ID is required" }, 400);
+polymarket.get("/event_markets_price_table", async (c) => {
+	const { title, tag } = c.req.query();
+
+	if (!title) {
+		return c.json({ error: "Event title is required" }, 400);
+	}
+	
+	// First fetch all events (both active and closed) to find the one with matching title
+	const searchResponse = await fetch(
+		`https://gamma-api.polymarket.com/events?limit=500${tag ? `&tag_slug=${tag}` : ""}`,
+	);
+	const events = (await searchResponse.json()) as Event[];
+	
+	// Try exact match first, then case-insensitive
+	let matchedEvent = events.find(e => e.title === title);
+	if (!matchedEvent) {
+		matchedEvent = events.find(e => e.title.trim().toLowerCase() === title.trim().toLowerCase());
+	}
+	
+	if (!matchedEvent) {
+		return c.json({ error: `Event not found: "${title}" (searched ${events.length} events)` }, 404);
 	}
 
-	// Fetch event by ID
-	const eventResponse = await fetch(`https://gamma-api.polymarket.com/events/${event_id}`);
+	// Fetch event details by ID
+	const eventResponse = await fetch(`https://gamma-api.polymarket.com/events/${matchedEvent.id}`);
 
 	if (!eventResponse.ok) {
 		return c.json({ error: "Event not found" }, 404);
