@@ -1033,42 +1033,67 @@ polymarket.get("/home_cards", async (c) => {
 polymarket.get("/event_options", async (c) => {
 	const { tag } = c.req.query();
 	
-	// Fetch all events (both active and closed) based on tag
+	// Fetch events sorted by volume (highest first) based on tag
 	const response = await fetch(
-		`https://gamma-api.polymarket.com/events?limit=500${tag ? `&tag_slug=${tag}` : ""}`,
+		`https://gamma-api.polymarket.com/events?limit=500&order=volume&ascending=false${tag ? `&tag_slug=${tag}` : ""}`,
 	);
 	const data = (await response.json()) as Event[];
 	
-	// Return events as label/value pairs for dropdown
-	return c.json(
-		data.map((event) => ({
-			label: event.title,
-			value: event.title
-		}))
+	// Return events as label/value pairs for dropdown, sorted by volume
+	// First item (highest volume) will be the default
+	const options = data.map((event) => ({
+		label: event.title,
+		value: event.title
+	}));
+	
+	return c.json(options);
+});
+
+polymarket.get("/event_default", async (c) => {
+	const { tag } = c.req.query();
+	
+	// Fetch events sorted by volume to get the highest volume one
+	const response = await fetch(
+		`https://gamma-api.polymarket.com/events?limit=1&order=volume&ascending=false${tag ? `&tag_slug=${tag}` : ""}`,
 	);
+	const data = (await response.json()) as Event[];
+	
+	// Return the title of the highest volume event as the value
+	// This format is expected by OpenBB for setting default dropdown values
+	if (data.length > 0) {
+		return c.text(data[0].title);
+	}
+	
+	return c.text("");
 });
 
 polymarket.get("/event_markets_price_table", async (c) => {
-	const { title, tag } = c.req.query();
+	let { title, tag } = c.req.query();
 
-	if (!title) {
-		return c.json({ error: "Event title is required" }, 400);
-	}
-	
-	// First fetch all events (both active and closed) to find the one with matching title
+	// Fetch events sorted by volume (highest first) to find the one with matching title or auto-select
 	const searchResponse = await fetch(
-		`https://gamma-api.polymarket.com/events?limit=500${tag ? `&tag_slug=${tag}` : ""}`,
+		`https://gamma-api.polymarket.com/events?limit=500&order=volume&ascending=false${tag ? `&tag_slug=${tag}` : ""}`,
 	);
 	const events = (await searchResponse.json()) as Event[];
 	
-	// Try exact match first, then case-insensitive
-	let matchedEvent = events.find(e => e.title === title);
-	if (!matchedEvent) {
-		matchedEvent = events.find(e => e.title.trim().toLowerCase() === title.trim().toLowerCase());
-	}
+	let matchedEvent;
 	
-	if (!matchedEvent) {
-		return c.json({ error: `Event not found: "${title}" (searched ${events.length} events)` }, 404);
+	if (title) {
+		// Try exact match first, then case-insensitive
+		matchedEvent = events.find(e => e.title === title);
+		if (!matchedEvent) {
+			matchedEvent = events.find(e => e.title.trim().toLowerCase() === title.trim().toLowerCase());
+		}
+		
+		if (!matchedEvent) {
+			return c.json({ error: `Event not found: "${title}" (searched ${events.length} events)` }, 404);
+		}
+	} else {
+		// No title provided - auto-select the highest volume event (first in the sorted list)
+		if (events.length === 0) {
+			return c.json({ error: "No events available for the selected tag" }, 404);
+		}
+		matchedEvent = events[0]; // Highest volume event
 	}
 
 	// Fetch event details by ID

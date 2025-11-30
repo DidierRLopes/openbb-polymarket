@@ -805,20 +805,20 @@ app.get("/apps.json", (c) => {
 	},
 	{
 		"name": "Polymarket V2",
-		"img": "",
-		"img_dark": "",
-		"img_light": "",
-		"description": "Polymarket V2 app",
+		"img": "https://upload.wikimedia.org/wikipedia/commons/7/75/Company_Logo_Polymarket.png",
+		"img_dark": "https://upload.wikimedia.org/wikipedia/commons/7/75/Company_Logo_Polymarket.png",
+		"img_light": "https://upload.wikimedia.org/wikipedia/commons/7/75/Company_Logo_Polymarket.png",
+		"description": "Didier version of Polymarket app",
 		"allowCustomization": true,
 		"tabs": {
 			"overview": {
 				"id": "overview",
-				"name": "Overview",
+				"name": "overview",
 				"layout": [
 					{
 						"i": "trending_tags",
 						"x": 0,
-						"y": 2,
+						"y": 0,
 						"w": 13,
 						"h": 16,
 						"state": {
@@ -849,7 +849,7 @@ app.get("/apps.json", (c) => {
 					{
 						"i": "top_events",
 						"x": 13,
-						"y": 2,
+						"y": 0,
 						"w": 27,
 						"h": 16,
 						"state": {
@@ -861,7 +861,18 @@ app.get("/apps.json", (c) => {
 							"chartModel": {
 								"modelType": "range",
 								"chartType": "groupedBar",
-								"chartOptions": {},
+								"chartOptions": {
+									"line": {
+										"series": {
+											"label": {
+												"enabled": false
+											},
+											"tooltip": {
+												"enabled": true
+											}
+										}
+									}
+								},
 								"suppressChartRanges": true,
 								"cellRange": {
 									"columns": [
@@ -907,7 +918,7 @@ app.get("/apps.json", (c) => {
 					{
 						"i": "event_markets_price_table",
 						"x": 0,
-						"y": 35,
+						"y": 33,
 						"w": 40,
 						"h": 15,
 						"state": {
@@ -934,15 +945,15 @@ app.get("/apps.json", (c) => {
 					{
 						"i": "top_events",
 						"x": 0,
-						"y": 18,
+						"y": 16,
 						"w": 40,
 						"h": 17,
 						"state": {
 							"params": {
-								"tag": "gemini-3",
+								"tag": "fed",
 								"active": "true",
 								"limit": "10",
-								"title": "Which company has best AI model end of 2025?"
+								"title": "Fed decision in December?"
 							},
 							"chartModel": {
 								"modelType": "range",
@@ -982,7 +993,10 @@ app.get("/apps.json", (c) => {
 											"id",
 											"markets"
 										]
-									}
+									},
+									"rowSelection": [
+										"0"
+									]
 								}
 							}
 						},
@@ -990,50 +1004,6 @@ app.get("/apps.json", (c) => {
 							"Group 1",
 							"Group 2"
 						]
-					}
-				]
-			},
-			"search": {
-				"id": "search",
-				"name": "Search",
-				"layout": [
-					{
-						"i": "top_events",
-						"x": 0,
-						"y": 2,
-						"w": 40,
-						"h": 11,
-						"state": {
-							"params": {
-								"tag": "trump",
-								"limit": 500
-							},
-							"chartView": {
-								"enabled": false,
-								"chartType": "line"
-							},
-							"columnState": {
-								"default": {
-									"rowSelection": [
-										"1"
-									]
-								}
-							}
-						},
-						"groups": []
-					},
-					{
-						"i": "event_price_history",
-						"x": 0,
-						"y": 13,
-						"w": 40,
-						"h": 13,
-						"state": {
-							"params": {
-								"id": "17505"
-							}
-						},
-						"groups": []
 					}
 				]
 			}
@@ -1133,9 +1103,13 @@ app.get("/widgets.json", (c) => {
 					label: "Selected Event",
 					type: "endpoint",
 					optionsEndpoint: "/polymarket/event_options",
+					defaultEndpoint: "/polymarket/event_default",
 					optionsParams: {
 						tag: "$tag",
 						active: "$active"
+					},
+					defaultParams: {
+						tag: "$tag"
 					},
 					show: false,
 				},
@@ -1402,8 +1376,13 @@ app.get("/widgets.json", (c) => {
 					description: "Select an event to view historical price data for all its markets. Updates automatically when clicking events in other widgets.",
 					label: "Event Selection",
 					type: "endpoint",
+					value: "",
 					optionsEndpoint: "/polymarket/event_options",
+					defaultEndpoint: "/polymarket/event_default",
 					optionsParams: {
+						tag: "$tag"
+					},
+					defaultParams: {
 						tag: "$tag"
 					},
 				},
