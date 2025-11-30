@@ -823,7 +823,7 @@ app.get("/apps.json", (c) => {
 						"h": 10,
 						"state": {
 							"params": {
-								"tag": "honduras"
+								"tag": "best-of-2025"
 							},
 							"chartView": {
 								"enabled": false,
@@ -835,10 +835,7 @@ app.get("/apps.json", (c) => {
 										"hiddenColIds": [
 											"slug"
 										]
-									},
-									"rowSelection": [
-										"0"
-									]
+									}
 								}
 							}
 						},
@@ -851,14 +848,29 @@ app.get("/apps.json", (c) => {
 						"x": 0,
 						"y": 12,
 						"w": 40,
-						"h": 10,
+						"h": 20,
 						"state": {
 							"params": {
-								"tag": "honduras"
+								"tag": "best-of-2025",
+								"active": "true",
+								"limit": "10"
+							},
+							"chartModel": {
+								"modelType": "range",
+								"chartType": "groupedBar",
+								"chartOptions": {},
+								"suppressChartRanges": true,
+								"cellRange": {
+									"columns": [
+										"title",
+										"volume",
+										"id"
+									]
+								}
 							},
 							"chartView": {
-								"enabled": false,
-								"chartType": "line"
+								"enabled": true,
+								"chartType": "groupedBar"
 							}
 						},
 						"groups": [
@@ -879,7 +891,8 @@ app.get("/apps.json", (c) => {
 						"h": 11,
 						"state": {
 							"params": {
-								"tag": "trump"
+								"tag": "trump",
+								"limit": 500
 							},
 							"chartView": {
 								"enabled": false,
@@ -911,7 +924,7 @@ app.get("/apps.json", (c) => {
 				"name": "Group 1",
 				"type": "param",
 				"paramName": "tag",
-				"defaultValue": "honduras"
+				"defaultValue": "best-of-2025"
 			}
 		]
 	}
@@ -971,26 +984,22 @@ app.get("/widgets.json", (c) => {
 			endpoint: "/polymarket/top_events",
 			params: [
 				{
-					paramName: "limit",
-					description: "The number of events to return",
-					type: "number",
-					value: 500,
-				},
-				{
-					paramName: "status",
-					description: "The status of the events to return",
-					type: "text",
-					value: "active",
-					options: [
-						{ label: "Active", value: "active" },
-						{ label: "Ended", value: "resolved" },
-					],
-				},
-				{
 					paramName: "tag",
 					description: "The tag to filter the markets by (e.g. trump, fed, ukraine)",
 					type: "text",
 					value: "",
+				},
+				{
+					paramName: "active",
+					description: "Show active or ended events",
+					type: "boolean",
+					value: true,
+				},
+				{
+					paramName: "limit",
+					description: "The number of events to return",
+					type: "number",
+					value: 30,
 				},
 			],
 		},
@@ -1111,6 +1120,7 @@ app.get("/widgets.json", (c) => {
 					description: "The tag to filter markets (automatically set when clicking a label)",
 					type: "text",
 					value: "",
+					show: false,
 				},
 			],
 			data: {
@@ -1214,6 +1224,21 @@ app.get("/widgets.json", (c) => {
 						{ label: "Created Date", value: "createdAt" },
 						{ label: "Reaction Count", value: "reactionCount" },
 					],
+				},
+			],
+		},
+		market_gauge: {
+			name: "Market Gauge",
+			description: "Interactive gauge chart showing the current probability of a Polymarket prediction market",
+			source: "Polymarket",
+			endpoint: "/polymarket/market_gauge",
+			type: "html",
+			params: [
+				{
+					paramName: "market_slug",
+					description: "The market slug to display the gauge for (e.g. fed-decreases-interest-rates-by-50-bps-after-december-2025-meeting)",
+					type: "text",
+					value: "fed-decreases-interest-rates-by-50-bps-after-december-2025-meeting",
 				},
 			],
 		},
