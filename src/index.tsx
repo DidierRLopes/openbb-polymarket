@@ -1117,6 +1117,7 @@ app.get("/widgets.json", (c) => {
 				{
 					paramName: "active",
 					description: "Show active or ended events",
+					label: "Active Events",
 					type: "boolean",
 					value: true,
 				},
