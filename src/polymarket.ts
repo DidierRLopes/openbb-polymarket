@@ -1030,285 +1030,133 @@ polymarket.get("/home_cards", async (c) => {
 	);
 });
 
-polymarket.get("/market_gauge", async (c) => {
-	const { market_slug } = c.req.query();
+polymarket.get("/event_markets_price_table", async (c) => {
+	const { event_id } = c.req.query();
 
-	if (!market_slug) {
-		return c.json({ error: "Market slug is required" }, 400);
+	if (!event_id) {
+		return c.json({ error: "Event ID is required" }, 400);
 	}
 
-	// First, fetch the market by slug
-	const response = await fetch(
-		`https://gamma-api.polymarket.com/markets?slug=${market_slug}`,
-	);
+	// Fetch event by ID
+	const eventResponse = await fetch(`https://gamma-api.polymarket.com/events/${event_id}`);
 
-	if (!response.ok) {
-		return c.json({ error: "Failed to fetch market" }, 500);
+	if (!eventResponse.ok) {
+		return c.json({ error: "Event not found" }, 404);
 	}
 
-	const markets = (await response.json()) as DetailedMarket[];
-	
-	if (!markets || markets.length === 0) {
-		return c.json({ error: "Market not found" }, 404);
-	}
-	
-	const market = markets[0];
-	
-	const outcomes = JSON.parse(market.outcomes) as string[];
-	const prices = JSON.parse(market.outcomePrices) as string[];
-	
-	// For binary markets (Yes/No), use the Yes price for the gauge
-	const yesPrice = prices[0] ? Number.parseFloat(prices[0]) * 100 : 50;
-	
-	// Calculate rotation angle for the needle (0% = -90deg, 100% = 90deg)
-	const needleRotation = -90 + (yesPrice * 1.8);
-	
-	// Generate pure HTML/CSS gauge without JavaScript
-	const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #151518;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        
-        .market-title {
-            font-size: 16px;
-            font-weight: 500;
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 0 20px;
-            line-height: 1.4;
-        }
-        
-        .gauge-container {
-            position: relative;
-            width: 300px;
-            height: 150px;
-            margin: 0 auto;
-        }
-        
-        .gauge-background {
-            position: absolute;
-            width: 300px;
-            height: 150px;
-            border-radius: 150px 150px 0 0;
-            background: linear-gradient(to right, #ef4444 0%, #ef4444 ${100 - yesPrice}%, #10b981 ${100 - yesPrice}%, #10b981 100%);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-        }
-        
-        .gauge-center {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 240px;
-            height: 120px;
-            border-radius: 120px 120px 0 0;
-            background: #151518;
-        }
-        
-        .gauge-needle {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 4px;
-            height: 130px;
-            background: linear-gradient(to top, #fff 0%, #fff 95%, transparent 95%);
-            transform-origin: bottom center;
-            transform: translateX(-50%) rotate(${needleRotation}deg);
-            z-index: 10;
-        }
-        
-        .gauge-needle::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 15px solid #fff;
-        }
-        
-        .gauge-center-dot {
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #fff;
-            border: 2px solid #374151;
-            z-index: 11;
-        }
-        
-        .gauge-labels {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .gauge-label {
-            position: absolute;
-            font-size: 12px;
-            font-weight: 600;
-            color: #9ca3af;
-        }
-        
-        .label-no {
-            bottom: -5px;
-            left: 10px;
-        }
-        
-        .label-50 {
-            bottom: 125px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .label-yes {
-            bottom: -5px;
-            right: 10px;
-        }
-        
-        .value-display {
-            font-size: 48px;
-            font-weight: 700;
-            text-align: center;
-            margin: 30px 0 20px;
-        }
-        
-        .outcomes-info {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            font-size: 14px;
-        }
-        
-        .outcome {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .indicator {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-        }
-        
-        .yes-indicator {
-            background: #10b981;
-        }
-        
-        .no-indicator {
-            background: #ef4444;
-        }
-        
-        .outcome-label {
-            color: #9ca3af;
-        }
-        
-        .price-value {
-            font-weight: 700;
-            color: #fff;
-            margin-left: 4px;
-        }
-        
-        /* Add tick marks */
-        .tick-marks {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .tick {
-            position: absolute;
-            width: 2px;
-            height: 10px;
-            background: #fff;
-            bottom: 0;
-            left: 50%;
-            transform-origin: bottom center;
-        }
-        
-        .tick-0 { transform: translateX(-50%) rotate(-90deg) translateY(-140px); }
-        .tick-10 { transform: translateX(-50%) rotate(-72deg) translateY(-140px); }
-        .tick-20 { transform: translateX(-50%) rotate(-54deg) translateY(-140px); }
-        .tick-30 { transform: translateX(-50%) rotate(-36deg) translateY(-140px); }
-        .tick-40 { transform: translateX(-50%) rotate(-18deg) translateY(-140px); }
-        .tick-50 { transform: translateX(-50%) rotate(0deg) translateY(-140px); }
-        .tick-60 { transform: translateX(-50%) rotate(18deg) translateY(-140px); }
-        .tick-70 { transform: translateX(-50%) rotate(36deg) translateY(-140px); }
-        .tick-80 { transform: translateX(-50%) rotate(54deg) translateY(-140px); }
-        .tick-90 { transform: translateX(-50%) rotate(72deg) translateY(-140px); }
-        .tick-100 { transform: translateX(-50%) rotate(90deg) translateY(-140px); }
-    </style>
-</head>
-<body>
-    <div class="market-title">${market.question}</div>
-    
-    <div class="gauge-container">
-        <div class="gauge-background"></div>
-        <div class="gauge-center"></div>
-        
-        <div class="tick-marks">
-            <div class="tick tick-0"></div>
-            <div class="tick tick-10"></div>
-            <div class="tick tick-20"></div>
-            <div class="tick tick-30"></div>
-            <div class="tick tick-40"></div>
-            <div class="tick tick-50"></div>
-            <div class="tick tick-60"></div>
-            <div class="tick tick-70"></div>
-            <div class="tick tick-80"></div>
-            <div class="tick tick-90"></div>
-            <div class="tick tick-100"></div>
-        </div>
-        
-        <div class="gauge-needle"></div>
-        <div class="gauge-center-dot"></div>
-        
-        <div class="gauge-labels">
-            <div class="gauge-label label-no">NO</div>
-            <div class="gauge-label label-50">50</div>
-            <div class="gauge-label label-yes">YES</div>
-        </div>
-    </div>
-    
-    <div class="value-display">${yesPrice.toFixed(1)}%</div>
-    
-    <div class="outcomes-info">
-        <div class="outcome">
-            <div class="indicator yes-indicator"></div>
-            <span class="outcome-label">Yes:<span class="price-value">${yesPrice.toFixed(1)}%</span></span>
-        </div>
-        <div class="outcome">
-            <div class="indicator no-indicator"></div>
-            <span class="outcome-label">No:<span class="price-value">${(100 - yesPrice).toFixed(1)}%</span></span>
-        </div>
-    </div>
-</body>
-</html>
-	`;
+	const event = (await eventResponse.json()) as DetailedEvent;
 
-	c.header("Content-Type", "text/html");
-	return c.text(html);
+	// Get price history for each market with 2 data points per day for all time
+	const marketDataPromises = event.markets.map(async (market) => {
+		const tokenIds = parseClobTokenIds(market.clobTokenIds);
+		const yesTokenId = tokenIds.yes;
+		
+		if (!yesTokenId) {
+			return {
+				marketId: market.id,
+				marketName: market.question,
+				priceHistory: { history: [] }
+			};
+		}
+
+		try {
+			// Use fidelity of 720 minutes (12 hours = 2 data points per day) - same as event_price_history
+			const priceHistoryResponse = await fetch(
+				`https://clob.polymarket.com/prices-history?interval=all&market=${yesTokenId}&fidelity=720`,
+			);
+
+			if (!priceHistoryResponse.ok) {
+				return {
+					marketId: market.id,
+					marketName: market.question,
+					priceHistory: []
+				};
+			}
+
+			const priceHistory = await priceHistoryResponse.json() as PriceHistoryResponse;
+
+			return {
+				marketId: market.id,
+				marketName: market.question,
+				priceHistory,
+			};
+		} catch (error) {
+			return {
+				marketId: market.id,
+				marketName: market.question,
+				priceHistory: { history: [] }
+			};
+		}
+	});
+
+	const marketDataResults = await Promise.all(marketDataPromises);
+
+	// Filter out markets with no price history
+	const marketsWithData = marketDataResults.filter(m => m.priceHistory.history && m.priceHistory.history.length > 0);
+
+	if (marketsWithData.length === 0) {
+		return c.json({ error: "No price history available for this event" }, 404);
+	}
+
+	// Group timestamps by minute to reduce sparse data
+	const timestampGroups = new Map<string, { timestamps: number[], prices: Map<string, number> }>();
+	
+	marketsWithData.forEach(market => {
+		// Use market.question as column name (truncate if too long)
+		const columnName = market.marketName.length > 50 
+			? market.marketName.substring(0, 47) + '...' 
+			: market.marketName;
+		
+		market.priceHistory.history.forEach(point => {
+			// Round timestamp to the nearest minute
+			const minuteKey = new Date(point.t * 1000).toISOString().substring(0, 16); // YYYY-MM-DDTHH:MM
+			
+			if (!timestampGroups.has(minuteKey)) {
+				timestampGroups.set(minuteKey, { timestamps: [], prices: new Map() });
+			}
+			
+			const group = timestampGroups.get(minuteKey)!;
+			group.timestamps.push(point.t);
+			
+			// Store the price for this market at this minute
+			// If multiple prices in same minute, last one wins
+			group.prices.set(columnName, point.p * 100);
+		});
+	});
+
+	// Sort minute keys
+	const sortedMinutes = Array.from(timestampGroups.keys()).sort();
+
+	// Create table data with one row per minute
+	const tableData = sortedMinutes.map(minuteKey => {
+		const group = timestampGroups.get(minuteKey)!;
+		const row: Record<string, any> = {
+			Date: minuteKey.replace('T', ' '), // Format as YYYY-MM-DD HH:MM
+		};
+		
+		// Add prices for all markets
+		marketsWithData.forEach(market => {
+			const columnName = market.marketName.length > 50 
+				? market.marketName.substring(0, 47) + '...' 
+				: market.marketName;
+			
+			// Get the price for this market at this minute
+			const price = group.prices.get(columnName);
+			row[columnName] = price !== undefined ? Number(price.toFixed(2)) : null;
+		});
+
+		return row;
+	});
+
+	// Sort by date ascending (oldest first)
+	tableData.sort((a, b) => {
+		const dateA = new Date(a.Date).getTime();
+		const dateB = new Date(b.Date).getTime();
+		return dateA - dateB;
+	});
+
+	// Return as regular JSON table data
+	return c.json(tableData);
 });
 
 polymarket.get("/event_comments", async (c) => {

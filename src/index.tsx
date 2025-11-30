@@ -819,11 +819,11 @@ app.get("/apps.json", (c) => {
 						"i": "trending_tags",
 						"x": 0,
 						"y": 2,
-						"w": 40,
-						"h": 10,
+						"w": 13,
+						"h": 16,
 						"state": {
 							"params": {
-								"tag": "best-of-2025"
+								"tag": "equities"
 							},
 							"chartView": {
 								"enabled": false,
@@ -835,7 +835,10 @@ app.get("/apps.json", (c) => {
 										"hiddenColIds": [
 											"slug"
 										]
-									}
+									},
+									"rowSelection": [
+										"3"
+									]
 								}
 							}
 						},
@@ -845,15 +848,16 @@ app.get("/apps.json", (c) => {
 					},
 					{
 						"i": "top_events",
-						"x": 0,
-						"y": 12,
-						"w": 40,
-						"h": 20,
+						"x": 13,
+						"y": 2,
+						"w": 27,
+						"h": 16,
 						"state": {
 							"params": {
-								"tag": "best-of-2025",
+								"tag": "gemini-3",
 								"active": "true",
-								"limit": "10"
+								"limit": "10",
+								"event_id": 59297
 							},
 							"chartModel": {
 								"modelType": "range",
@@ -863,18 +867,127 @@ app.get("/apps.json", (c) => {
 								"cellRange": {
 									"columns": [
 										"title",
-										"volume",
-										"id"
+										"volume"
 									]
 								}
 							},
 							"chartView": {
 								"enabled": true,
 								"chartType": "groupedBar"
+							},
+							"columnState": {
+								"default": {
+									"columnPinning": {
+										"leftColIds": [
+											"id"
+										],
+										"rightColIds": []
+									},
+									"columnOrder": {
+										"orderedColIds": [
+											"title",
+											"volume",
+											"liquidity",
+											"volume24hr",
+											"volume1mo",
+											"volume1yr",
+											"startDate",
+											"endDate",
+											"active",
+											"id",
+											"markets"
+										]
+									}
+								}
 							}
 						},
 						"groups": [
 							"Group 1"
+						]
+					},
+					{
+						"i": "event_markets_price_table",
+						"x": 0,
+						"y": 35,
+						"w": 40,
+						"h": 15,
+						"state": {
+							"params": {
+								"event_id": 57575
+							},
+							"chartModel": {
+								"modelType": "range",
+								"chartType": "line",
+								"chartOptions": {},
+								"suppressChartRanges": true
+							},
+							"chartView": {
+								"enabled": true,
+								"chartType": "line"
+							}
+						},
+						"groups": [
+							"Group 2"
+						]
+					},
+					{
+						"i": "top_events",
+						"x": 0,
+						"y": 18,
+						"w": 40,
+						"h": 17,
+						"state": {
+							"params": {
+								"tag": "gemini-3",
+								"active": "true",
+								"limit": "10",
+								"event_id": 57575
+							},
+							"chartModel": {
+								"modelType": "range",
+								"chartType": "groupedBar",
+								"chartOptions": {},
+								"suppressChartRanges": true,
+								"cellRange": {
+									"columns": [
+										"title",
+										"volume"
+									]
+								}
+							},
+							"chartView": {
+								"enabled": false,
+								"chartType": "groupedBar"
+							},
+							"columnState": {
+								"default": {
+									"columnPinning": {
+										"leftColIds": [
+											"id"
+										],
+										"rightColIds": []
+									},
+									"columnOrder": {
+										"orderedColIds": [
+											"title",
+											"volume",
+											"liquidity",
+											"volume24hr",
+											"volume1mo",
+											"volume1yr",
+											"startDate",
+											"endDate",
+											"active",
+											"id",
+											"markets"
+										]
+									}
+								}
+							}
+						},
+						"groups": [
+							"Group 1",
+							"Group 2"
 						]
 					}
 				]
@@ -901,7 +1014,7 @@ app.get("/apps.json", (c) => {
 							"columnState": {
 								"default": {
 									"rowSelection": [
-										"2"
+										"1"
 									]
 								}
 							}
@@ -914,6 +1027,11 @@ app.get("/apps.json", (c) => {
 						"y": 13,
 						"w": 40,
 						"h": 13,
+						"state": {
+							"params": {
+								"id": "17505"
+							}
+						},
 						"groups": []
 					}
 				]
@@ -924,7 +1042,13 @@ app.get("/apps.json", (c) => {
 				"name": "Group 1",
 				"type": "param",
 				"paramName": "tag",
-				"defaultValue": "best-of-2025"
+				"defaultValue": "gemini-3"
+			},
+			{
+				"name": "Group 2",
+				"type": "param",
+				"paramName": "event_id",
+				"defaultValue": 57575
 			}
 		]
 	}
@@ -1001,7 +1125,34 @@ app.get("/widgets.json", (c) => {
 					type: "number",
 					value: 30,
 				},
+				{
+					paramName: "event_id",
+					description: "Selected event ID (set by clicking on title)",
+					type: "text",
+					value: "",
+					show: false,
+				},
 			],
+			data: {
+				table: {
+					showAll: true,
+					columnsDefs: [
+						{
+							field: "title",
+							headerName: "Title",
+							cellDataType: "text",
+							renderFn: "cellOnClick",
+							renderFnParams: {
+								actionType: "groupBy",
+								groupBy: {
+									paramName: "event_id",
+									valueField: "id"
+								}
+							}
+						}
+					]
+				}
+			},
 		},
 		top_markets: {
 			name: "Top Markets",
@@ -1227,18 +1378,17 @@ app.get("/widgets.json", (c) => {
 				},
 			],
 		},
-		market_gauge: {
-			name: "Market Gauge",
-			description: "Interactive gauge chart showing the current probability of a Polymarket prediction market",
+		event_markets_price_table: {
+			name: "Event Markets Price Table",
+			description: "Time series table showing price history for all markets in an event with dates and market columns (2 data points per day)",
 			source: "Polymarket",
-			endpoint: "/polymarket/market_gauge",
-			type: "html",
+			endpoint: "/polymarket/event_markets_price_table",
 			params: [
 				{
-					paramName: "market_slug",
-					description: "The market slug to display the gauge for (e.g. fed-decreases-interest-rates-by-50-bps-after-december-2025-meeting)",
+					paramName: "event_id",
+					description: "The event ID to display markets price history (click on a title in Top Events to set)",
 					type: "text",
-					value: "fed-decreases-interest-rates-by-50-bps-after-december-2025-meeting",
+					value: "19694",
 				},
 			],
 		},
