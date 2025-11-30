@@ -470,7 +470,7 @@ app.get("/apps.json", (c) => {
 						"h": 13,
 						"state": {
 							"params": {
-								"tag": "100328"
+								"tag": "equities"
 							},
 							"chartView": {
 								"enabled": false,
@@ -537,7 +537,7 @@ app.get("/apps.json", (c) => {
 						"h": 6,
 						"state": {
 							"params": {
-								"tag": "100196"
+								"tag": "fed"
 							},
 							"chartView": {
 								"enabled": false,
@@ -803,6 +803,89 @@ app.get("/apps.json", (c) => {
 		"groups": []
 
 	},
+	{
+		"name": "Polymarket V2",
+		"img": "",
+		"img_dark": "",
+		"img_light": "",
+		"description": "Polymarket V2 app",
+		"allowCustomization": true,
+		"tabs": {
+			"overview": {
+				"id": "overview",
+				"name": "Overview",
+				"layout": [
+					{
+						"i": "trending_tags",
+						"x": 0,
+						"y": 2,
+						"w": 40,
+						"h": 10,
+						"state": {
+							"chartView": {
+								"enabled": false,
+								"chartType": "line"
+							}
+						},
+						"groups": ["markets-overview"]
+					},
+					{
+						"i": "top_events",
+						"x": 0,
+						"y": 12,
+						"w": 40,
+						"h": 10,
+						"state": {
+							"params": {
+								"tag": ""
+							},
+							"chartView": {
+								"enabled": false,
+								"chartType": "line"
+							}
+						},
+						"groups": ["markets-overview"]
+					}
+				]
+			},
+			"search": {
+				"id": "search",
+				"name": "Search",
+				"layout": [
+					{
+						"i": "top_events",
+						"x": 0,
+						"y": 2,
+						"w": 40,
+						"h": 11,
+						"state": {
+							"chartView": {
+								"enabled": false,
+								"chartType": "line"
+							},
+							"columnState": {
+								"default": {
+									"rowSelection": [
+										"1"
+									]
+								}
+							}
+						},
+						"groups": []
+					},
+					{
+						"i": "event_price_history",
+						"x": 0,
+						"y": 13,
+						"w": 40,
+						"h": 13,
+						"groups": []
+					}
+				]
+			}
+		},
+		"groups": []
+	}
 	]);
 });
 
@@ -876,9 +959,9 @@ app.get("/widgets.json", (c) => {
 				},
 				{
 					paramName: "tag",
-					description: "The tag to filter the markets by",
+					description: "The tag to filter the markets by (e.g. trump, fed, ukraine)",
 					type: "text",
-					value: "100389",
+					value: "",
 				},
 			],
 		},
@@ -906,9 +989,9 @@ app.get("/widgets.json", (c) => {
 				},
 				{
 					paramName: "tag",
-					description: "The tag to filter the markets by",
+					description: "The tag to filter the markets by (e.g. trump, fed, ukraine)",
 					type: "text",
-					value: "100389",
+					value: "trump",
 				},
 			],
 		},
@@ -989,10 +1072,48 @@ app.get("/widgets.json", (c) => {
 			],
 		},
 		trending_tags: {
-			name: "Trending Tags",
-			description: "Get the trending tags on Polymarket",
+			name: "Top Markets",
+			description: "Get the top markets on Polymarket sorted by creation date",
 			source: "Polymarket",
 			endpoint: "/polymarket/trending_tags",
+			params: [
+				{
+					paramName: "tag",
+					description: "The tag to filter markets (automatically set when clicking a label)",
+					type: "text",
+					value: "",
+				},
+			],
+			data: {
+				table: {
+					showAll: false,
+					columnsDefs: [
+						{
+							field: "label",
+							headerName: "Label",
+							cellDataType: "text",
+							renderFn: "cellOnClick",
+							renderFnParams: {
+								actionType: "groupBy",
+								groupBy: {
+									paramName: "tag",
+									valueField: "slug"
+								}
+							}
+						},
+						{
+							field: "slug",
+							headerName: "Slug",
+							cellDataType: "text"
+						},
+						{
+							field: "createdAt",
+							headerName: "Created At",
+							cellDataType: "text"
+						}
+					]
+				}
+			},
 		},
 		home_cards: {
 			name: "Home Cards",
@@ -1013,8 +1134,8 @@ app.get("/widgets.json", (c) => {
 					value: 0,
 				},
 				{
-					paramName: "tag_id",
-					description: "Optional tag ID to filter the events",
+					paramName: "tag",
+					description: "Optional tag slug to filter the events (e.g. trump, fed, ukraine)",
 					type: "text",
 					value: "",
 				},

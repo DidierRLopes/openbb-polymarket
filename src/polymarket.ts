@@ -450,7 +450,7 @@ polymarket.get("/search_tags", async (c) => {
 polymarket.get("/top_events", async (c) => {
 	const { limit, status, tag } = c.req.query();
 	const response = await fetch(
-		`https://gamma-api.polymarket.com/events?active=${status === "active"}&closed=${status === "resolved"}&limit=${limit}&order=volume&ascending=false&volume_num_min=1.0${tag ? `&tag_id=${tag}` : ""}`,
+		`https://gamma-api.polymarket.com/events?active=${status === "active"}&closed=${status === "resolved"}&limit=${limit}&order=volume&ascending=false&volume_num_min=1.0${tag ? `&tag_slug=${tag}` : ""}`,
 	);
 	const data = (await response.json()) as (Event & {
 		volume: number;
@@ -487,7 +487,7 @@ polymarket.get("/top_events", async (c) => {
 polymarket.get("/top_markets", async (c) => {
 	const { limit, status, tag } = c.req.query();
 	const response = await fetch(
-		`https://gamma-api.polymarket.com/markets?active=${status === "active"}&closed=${status === "resolved"}&limit=${limit}&order=volume&ascending=false&volume_num_min=1.0${tag ? `&tag_id=${tag}` : ""}`,
+		`https://gamma-api.polymarket.com/markets?active=${status === "active"}&closed=${status === "resolved"}&limit=${limit}&order=volume&ascending=false&volume_num_min=1.0${tag ? `&tag_slug=${tag}` : ""}`,
 	);
 	const data = (await response.json()) as Market[];
 
@@ -819,9 +819,15 @@ polymarket.get("/trending_tags", async (c) => {
 
 	const data = (await response.json()) as TrendingTag[];
 
+	// Sort by createdAt from most recent to least recent
+	const sortedData = data.sort((a, b) => {
+		const dateA = new Date(a.createdAt).getTime();
+		const dateB = new Date(b.createdAt).getTime();
+		return dateB - dateA; // Most recent first
+	});
 
 	return c.json(
-		data.map((tag) => ({
+		sortedData.map((tag) => ({
 			id: tag.id,
 			label: tag.label,
 			slug: tag.slug,
@@ -971,12 +977,12 @@ polymarket.get("/event_price_history", async (c) => {
 });
 
 polymarket.get("/home_cards", async (c) => {
-	const { limit = "20", offset = "0", tag_id } = c.req.query();
+	const { limit = "20", offset = "0", tag } = c.req.query();
 
 	let url = `https://gamma-api.polymarket.com/events/pagination?limit=${limit}&active=true&archived=false&closed=false&order=volume24hr&ascending=false&offset=${offset}`;
 	
-	if (tag_id && tag_id.trim() !== "") {
-		url += `&tag_id=${tag_id}`;
+	if (tag && tag.trim() !== "") {
+		url += `&tag_slug=${tag}`;
 	}
 
 	const response = await fetch(url);
